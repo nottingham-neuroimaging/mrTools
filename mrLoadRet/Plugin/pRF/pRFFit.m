@@ -248,18 +248,18 @@ end
 mod = 'vision'; % this variable should be set in the GUI - the user can choose the stimulus / modality
 overlayNames = getMetaData(v,params,mod,'overlayNames');
 % r2
-eval(sprintf('fit.%s = maxr^2',overlayNames{1}));
+eval(sprintf('fit.%s = maxr^2;',overlayNames{1}) );
 % x
-eval(sprintf('fit.%s = fit.x',overlayNames{2}));
+eval(sprintf('fit.%s = fit.x;',overlayNames{2}));
 
 if numel(overlayNames) == 4
     % y
-    eval(sprintf('fit.%s = fit.y',overlayNames{3}));
+    eval(sprintf('fit.%s = fit.y;',overlayNames{3}));
     % hw
-    eval(sprintf('fit.%s = fit.std',overlayNames{4}));
+    eval(sprintf('fit.%s = fit.std;',overlayNames{4}));
 else
     % hw
-    eval(sprintf('fit.%s = fit.std',overlayNames{3}));
+    eval(sprintf('fit.%s = fit.std;',overlayNames{3}));
 end
 %%%%%%%
 

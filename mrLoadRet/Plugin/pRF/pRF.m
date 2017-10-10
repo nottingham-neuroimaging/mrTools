@@ -273,67 +273,60 @@ for scanNum = params.scanNum
     end
 
     % now loop over each voxel
-    for i = blockStart:blockEnd
-      fit = pRFFit(v,scanNum,x(i),y(i),z(i),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',i,'dispN',n,'tSeries',loadROI.tSeries(i-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo);
-      if ~isempty(fit)
-	% keep data, note that we are keeping temporarily in
-	% a vector here so that parfor won't complain
-	% then afterwords we put it into the actual overlay struct
-% 	thisr2(i) = fit.r2;
-% 	thisPolarAngle(i) = fit.polarAngle;
-% 	thisEccentricity(i) = fit.eccentricity;
-% 	thisRfHalfWidth(i) = fit.std;
-    
-%     Need to pass overlaySpec to pRFFit to name fitting params in fit structure
-
-%         stuff = fieldnames(fit);
-        for iOverlay = 1:numel(overlayNames)
-%             thisData(iOverlay,i) = fit.overlayNames{iOverlay};
+    parfor ii = blockStart:blockEnd
+        fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo);
+        if ~isempty(fit)
+            % keep data, note that we are keeping temporarily in
+            % a vector here so that parfor won't complain
+            % then afterwords we put it into the actual overlay struct
+            % 	thisr2(i) = fit.r2;
+            % 	thisPolarAngle(i) = fit.polarAngle;
+            % 	thisEccentricity(i) = fit.eccentricity;
+            % 	thisRfHalfWidth(i) = fit.std;
             
-    eval(sprintf('thisData(%d,%d) = fit.%s',iOverlay,i,overlayNames{iOverlay}));    
+            % parfor can't classify thisData, because it doesn't do order
+            % very well...
+            % so let's make a tempVar which is overwritten each time, then
+            % save this into thisData outside the nested forloop - Jim
+            
+            tempVar = zeros(length(overlayNames),1);
+            
+            for iOverlay = 1:numel(overlayNames)
 
-            %%thisData{1,iOverlay}{1,2}(i) = nan(1,n);
-
-            %this won't exist inside the fit structure yet, so it will error
-            % - ma
-
-%             test = strcmpi(fieldnames(fit), overlaySpec{iOverlay}{2});
-%             pos = find(test==1);
-%             test(test==0) = [];
-% 
-%             fudgetest = strcmpi(overlaySpec{iOverlay}, 'rfHalfwidth'); % need to find out how to change this!!!
-%             fudgetest(fudgetest==0) = [];
-% 
-%             if fudgetest
-%                 thisData(iOverlay,i) = fit.std;
-%             elseif test
-% 
-% 
-%                 %thisData{iOverlay}{2}(i) = fit.(stuff{pos});
-%                 thisData(iOverlay,i) = fit.(stuff{pos});
-%            
-% 
-%             else
-%                 error('BAD NEWS')
-%             end
-
+                % eval doesn't work when using parfor!!! 
+                %eval(sprintf('thisData(%d,%d) = fit.%s;',iOverlay,i,overlayNames{iOverlay}));
+                
+                % this gets around using eval
+                % but leads to other parallel processing issues...
+                test = strcmpi(fieldnames(fit), overlayNames(iOverlay) );
+                %pos = find(test==1);
+                bla = struct2cell(fit);
+                val = cell2mat(bla(test==1));
+                
+                % this is temporary, gets overwritten each time
+                tempVar(iOverlay,1) = val;
+              
+                
+                %thisData(iOverlay, ii) = val;
+            end
+            % now put the values for this voxel into some sort of order :)
+            thisData(:,ii) = tempVar;
+            
+            % keep parameters
+            rawParams(:,ii) = fit.params(:);
+            r(ii,:) = fit.r;
         end
-    
-	% keep parameters
-	rawParams(:,i) = fit.params(:);
-	r(i,:) = fit.r;
-      end
     end
-      
+    
     % set overlays
-    for i = 1:n
+    for ii = 1:n
         %       r2.data{scanNum}(x(i),y(i),z(i)) = thisr2(i);
         %       polarAngle.data{scanNum}(x(i),y(i),z(i)) = thisPolarAngle(i);
         %       eccentricity.data{scanNum}(x(i),y(i),z(i)) = thisEccentricity(i);
         %       rfHalfWidth.data{scanNum}(x(i),y(i),z(i)) = thisRfHalfWidth(i);
 %         ff = cell2struct(overlaySpec, 'usefulInfo', length(overlaySpec));
         for iOverlay = 1:length(overlayNames)                     
-            theOverlays{iOverlay}.data{scanNum}(x(i),y(i),z(i)) = thisData(iOverlay,i);
+            theOverlays{iOverlay}.data{scanNum}(x(ii),y(ii),z(ii)) = thisData(iOverlay,ii);
         end
     end
   end
@@ -401,8 +394,8 @@ end
 
 % for output
 if nargout > 1
-  for i = 1:length(d)
-    pRFAnal.d{i}.r2 = r2.data{i};
+  for ii = 1:length(d)
+    pRFAnal.d{ii}.r2 = r2.data{ii};
   end
   % make d strucutre
   if length(pRFAnal.d) == 1

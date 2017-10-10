@@ -46,7 +46,7 @@ if ~ieNotDefined('boxInfo')
   boxInfo.interpExtrapVal = NaN;
   overlayCoords = cell(1,length(scanList));
   if fieldIsNotDefined(boxInfo,'corticalDepth')
-    boxInfo.corticalDepth = viewGet(thisView,'corticalDepth',boxInfo.baseNum);
+    boxInfo.corticalDepth = viewGet(thisView,'corticalDepth');
   end
 end
 
