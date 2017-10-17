@@ -238,7 +238,8 @@ for scanNum = params.scanNum
   % as tested on my machine - maybe a few percent faster with full n, but
   % on many machines without enough memory that will crash it so keeping
   % this preliminary value in for now.
-  blockSize = 240;
+  % blockSize = 240;
+  blockSize = n;
   tic;
   % break into blocks of voxels to go easy on memory
   % if blockSize = n then this just does on block at a time.
@@ -261,6 +262,12 @@ for scanNum = params.scanNum
     % pass it into pRFFit and pRFFit will load the tSeries itself
     loadROI = loadROITSeries(v,loadROI,scanNum,params.groupName);
     % reorder x,y,z coordinates since they can get scrambled in loadROITSeries
+    
+    % hack to stop nans
+    blockEnd = size(loadROI.scanCoords,2); % HACK TO STOP NANS
+    blockSize = blockEnd;
+    n = blockEnd;
+    
     x(blockStart:blockEnd) = loadROI.scanCoords(1,1:blockSize);
     y(blockStart:blockEnd) = loadROI.scanCoords(2,1:blockSize);
     z(blockStart:blockEnd) = loadROI.scanCoords(3,1:blockSize);
@@ -363,8 +370,8 @@ pRFAnal.guiFunction = 'pRFGUI';
 pRFAnal.params = params;
 pRFAnal.overlays = [];
 for iOverlay = 1:numel(theOverlays)
-    eval(sprintf('%s = struct(theOverlays{iOverlay})',overlayNames{iOverlay}));    
-    eval(sprintf('pRFAnal.overlays = [pRFAnal.overlays %s]',overlayNames{iOverlay}));
+    eval(sprintf('%s = struct(theOverlays{iOverlay});',overlayNames{iOverlay}));    
+    eval(sprintf('pRFAnal.overlays = [pRFAnal.overlays %s];',overlayNames{iOverlay}));
 end
 %pRFAnal.overlays = [r2 polarAngle eccentricity rfHalfWidth];
 % pRFAnal.overlays = ff;
