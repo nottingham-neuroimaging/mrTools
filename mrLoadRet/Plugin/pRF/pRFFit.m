@@ -216,7 +216,7 @@ if isfield(fitParams,'prefit') && ~isempty(fitParams.prefit)
     return
   end
 end
-
+keyboard
 % now do nonlinear fit
 if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
   [params resnorm residual exitflag output lambda jacobian] = lsqnonlin(@getModelResidual,fitParams.initParams,fitParams.minParams,fitParams.maxParams,fitParams.optimParams,tSeries,fitParams);
@@ -239,7 +239,7 @@ if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
 elseif strcmp(lower(fitParams.algorithm),'nelder-mead')
   fit.r2 = residual^2;
 end
-
+keyboard
 % compute polar coordinates
 [fit.polarAngle fit.eccentricity] = cart2pol(fit.x,fit.y);
 
@@ -266,6 +266,8 @@ end
 % display
 if fitParams.verbose
   disp(sprintf('%s[%2.f %2.f %2.f] r2=%0.2f polarAngle=%6.1f eccentricity=%6.1f rfHalfWidth=%6.1f',fitParams.dispstr,x,y,z,fit.r2,r2d(fit.polarAngle),fit.eccentricity,fit.std));
+end
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -391,6 +393,8 @@ for i = 1:length(params)
   end
 end
 
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   getModelResidual   %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -480,6 +484,7 @@ if strcmp(lower(fitParams.algorithm),'nelder-mead')
 %  disp(sprintf('(pRFFit:getModelResidual) r: %f',residual));
 end
 
+end
 
 %%%%%%%%%%%%%%%%%%%%%%
 %    dispModelFit    %
@@ -517,6 +522,7 @@ canonical = getCanonicalHRF(p.canonical,fitParams.framePeriod);
 plot(canonical.time,canonical.hrf,'k-')
 if exist('myaxis') == 2,myaxis;end
 
+end
 %%%%%%%%%%%%%%%%%%%%%%%%
 %    scaleAndOffset    %
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -535,6 +541,7 @@ else
   residual = tSeries;
 end
 
+end
 %%%%%%%%%%%%%%%%%%%%%%
 %%   getFitParams   %%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -583,6 +590,7 @@ otherwise
     disp(sprintf('(pRFFit) Unknown rfType %s',rfType));
 end
 
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   convolveModelWithStimulus   %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -600,6 +608,8 @@ for frameNum = 1:nStimFrames
   modelResponse(frameNum) = sum(sum(rfModel.*stim.im(:,:,frameNum)));
 end
 
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   convolveModelResponseWithHRF   %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -608,7 +618,7 @@ function modelTimecourse = convolveModelResponseWithHRF(modelTimecourse,hrf)
 n = length(modelTimecourse);
 modelTimecourse = conv(modelTimecourse,hrf.hrf);
 modelTimecourse = modelTimecourse(1:n);
-
+end
 %%%%%%%%%%%%%%%%%%%%%
 %%   getGammaHRF   %%
 %%%%%%%%%%%%%%%%%%%%%
@@ -620,6 +630,7 @@ if p.diffOfGamma
   fun = fun - thisGamma(time,p.amplitudeRatio,p.timelag2,p.offset2,p.tau2,p.exponent2)/100;
 end
 
+end
 %%%%%%%%%%%%%%%%%%%
 %%   thisGamma   %%
 %%%%%%%%%%%%%%%%%%%
@@ -639,6 +650,8 @@ if (max(gammafun)-min(gammafun))~=0
 end
 gammafun = (amplitude*gammafun+offset);
 
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%   getCanonicalHRF   %%
@@ -650,6 +663,8 @@ hrf.hrf = getGammaHRF(hrf.time,params);
 
 % normalize to amplitude of 1
 hrf.hrf = hrf.hrf / max(hrf.hrf);
+
+end
 
 %%%%%%%%%%%%%%%%%%%%
 %%   getRFModel   %%
@@ -665,6 +680,8 @@ else
   disp(sprintf('(pRFFit:getRFModel) Unknown rfType: %s',fitParams.rfType));
 end
 
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%   makeRFGaussian   %%
@@ -674,6 +691,7 @@ function rfModel = makeRFGaussian(params,fitParams)
 % compute rf
 rfModel = exp(-(((fitParams.stimX-params.x).^2)/(2*(params.std^2))+((fitParams.stimY-params.y).^2)/(2*(params.std^2))));
 
+end
 %%%%%%%%%%%%%%%%%%%
 %    parseArgs    %
 %%%%%%%%%%%%%%%%%%%
@@ -850,6 +868,8 @@ if isempty(fitParams.prefit) || (fitParams.prefit.quickPrefit ~= fitParams.quick
   fitParams.prefit.rfHalfWidth = prefitrfHalfWidth(:);
 end
 
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %    checkStimForAverages    %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -953,6 +973,8 @@ else
   end
 end
 
+end
+
 %%%%%%%%%%%%%%%%%
 %    getStim    %
 %%%%%%%%%%%%%%%%%
@@ -985,6 +1007,8 @@ else
   % otherwise load from global
   disp(sprintf('(pRFFit) Using precomputed stim image'));
   stim = gpRFFitStimImage.stim;
+end
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1024,6 +1048,8 @@ tSeries = tSeries-repmat(mean(tSeries,1),size(tSeries,1),1);
 % make back into the right dimensions
 tSeries = tSeries(:)';
 
+end
+
 %%%%%%%%%%%%%
 %%   r2d   %%
 %%%%%%%%%%%%%
@@ -1041,4 +1067,6 @@ end
 % 360 degrees
 while (sum(degrees<-360))
   degrees = degrees + (degrees<-360)*360;
+end
+
 end
