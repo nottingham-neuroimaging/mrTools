@@ -194,7 +194,7 @@ if isfield(fitParams,'prefit') && ~isempty(fitParams.prefit)
     mod = 'vision'; % this variable should be set in the GUI - the user can choose the stimulus / modality
     overlayNames = getMetaData(v,params,mod,'overlayNames');
     % r2
-    eval(sprintf('fit.%s = maxr^2',overlayNames{1}));
+    eval(sprintf('fit.%s = fit.r2',overlayNames{1}));
     % x
     eval(sprintf('fit.%s = fit.x',overlayNames{2}));
     
@@ -216,7 +216,7 @@ if isfield(fitParams,'prefit') && ~isempty(fitParams.prefit)
     return
   end
 end
-keyboard
+
 % now do nonlinear fit
 if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
   [params resnorm residual exitflag output lambda jacobian] = lsqnonlin(@getModelResidual,fitParams.initParams,fitParams.minParams,fitParams.maxParams,fitParams.optimParams,tSeries,fitParams);
@@ -239,7 +239,7 @@ if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
 elseif strcmp(lower(fitParams.algorithm),'nelder-mead')
   fit.r2 = residual^2;
 end
-keyboard
+%keyboard
 % compute polar coordinates
 [fit.polarAngle fit.eccentricity] = cart2pol(fit.x,fit.y);
 
@@ -248,7 +248,7 @@ keyboard
 mod = 'vision'; % this variable should be set in the GUI - the user can choose the stimulus / modality
 overlayNames = getMetaData(v,params,mod,'overlayNames');
 % r2
-eval(sprintf('fit.%s = maxr^2;',overlayNames{1}) );
+eval(sprintf('fit.%s = fit.r2;',overlayNames{1}) );
 % x
 eval(sprintf('fit.%s = fit.x;',overlayNames{2}));
 
