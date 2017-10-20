@@ -10,13 +10,21 @@ function fit = pRFFit(varargin)
 fit = [];
 % parse input arguments - note that this is set
 % up so that it can also be called as an interrogator
-[v scanNum x y z fitParams tSeries] = parseArgs(varargin);
+[v, scanNum, x, y, z, fitParams, tSeries, hrfprf] = parseArgs(varargin);
 if isempty(v),return,end
  
 % get concat info
 if ~isfield(fitParams,'concatInfo') || isempty(fitParams.concatInfo)
   fitParams.concatInfo = viewGet(v,'concatInfo',scanNum);
 end
+
+% adding own params...
+if ~ieNotDefined('hrfprf')
+    hrfprfcheck = 1;
+else 
+    hrfprfcheck = 0;
+end
+
 
 % if there is no concatInfo, then make one that will
 % treat the scan as a single scan
@@ -99,7 +107,7 @@ fitParams = setFitParams(fitParams);
 % just return model response for already calcualted params
 if fitParams.getModelResponse
   % get model fit
-  [residual fit.modelResponse fit.rfModel] = getModelResidual(fitParams.params,tSeries,fitParams);
+  [residual fit.modelResponse fit.rfModel] = getModelResidual(fitParams.params,tSeries,fitParams, [], hrfprfcheck);
   % get the canonical
   fit.p = getFitParams(fitParams.params,fitParams);
   fit.canonical = getCanonicalHRF(fit.p.canonical,fitParams.framePeriod);
@@ -217,14 +225,20 @@ if isfield(fitParams,'prefit') && ~isempty(fitParams.prefit)
   end
 end
 
-% now do nonlinear fit
-if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
-  [params resnorm residual exitflag output lambda jacobian] = lsqnonlin(@getModelResidual,fitParams.initParams,fitParams.minParams,fitParams.maxParams,fitParams.optimParams,tSeries,fitParams);
-elseif strcmp(lower(fitParams.algorithm),'nelder-mead')
-  [params fval exitflag] = fminsearch(@getModelResidual,fitParams.initParams,fitParams.optimParams,(tSeries-mean(tSeries))/var(tSeries.^2),fitParams);
+if ~ieNotDefined('hrfprf'),
+    params = hrfprf;
 else
-  disp(sprintf('(pRFFit) Unknown optimization algorithm: %s',fitParams.algorithm));
-  return
+    
+    % now do nonlinear fit
+    if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
+        [params resnorm residual exitflag output lambda jacobian] = lsqnonlin(@getModelResidual,fitParams.initParams,fitParams.minParams,fitParams.maxParams,fitParams.optimParams,tSeries,fitParams);
+    elseif strcmp(lower(fitParams.algorithm),'nelder-mead')
+        [params fval exitflag] = fminsearch(@getModelResidual,fitParams.initParams,fitParams.optimParams,(tSeries-mean(tSeries))/var(tSeries.^2),fitParams);
+    else
+        disp(sprintf('(pRFFit) Unknown optimization algorithm: %s',fitParams.algorithm));
+        return
+    end
+    
 end
 
 % set output arguments
@@ -233,7 +247,7 @@ fit.rfType = fitParams.rfType;
 fit.params = params;
 
 % compute r^2
-[residual modelResponse rfModel fit.r] = getModelResidual(params,tSeries,fitParams);
+[residual modelResponse rfModel fit.r] = getModelResidual(params,tSeries,fitParams, [], hrfprfcheck);
 if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
   fit.r2 = 1-sum((residual-mean(residual)).^2)/sum((tSeries-mean(tSeries)).^2);
 elseif strcmp(lower(fitParams.algorithm),'nelder-mead')
@@ -398,7 +412,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   getModelResidual   %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-function [residual modelResponse rfModel r] = getModelResidual(params,tSeries,fitParams,justGetModel)
+function [residual modelResponse rfModel r] = getModelResidual(params,tSeries,fitParams,justGetModel, hrfprfcheck)
 
 residual = [];
 if nargin < 4, justGetModel = 0;end
@@ -409,6 +423,11 @@ p = getFitParams(params,fitParams);
 
 % compute an RF
 rfModel = getRFModel(p,fitParams);
+
+%tempfix for crossVal
+if ieNotDefined('hrfprfcheck')
+    hrfprfcheck = 0;
+end
 
 % init model response
 modelResponse = [];residual = [];
@@ -695,9 +714,9 @@ end
 %%%%%%%%%%%%%%%%%%%
 %    parseArgs    %
 %%%%%%%%%%%%%%%%%%%
-function [v scanNum x y s fitParams tSeries] = parseArgs(args);
+function [v, scanNum, x, y, s, fitParams, tSeries, hrfprf] = parseArgs(args)
 
-v = [];scanNum=[];x=[];y=[];s=[];fitParams=[];tSeries = [];
+v = [];scanNum=[];x=[];y=[];s=[];fitParams=[];tSeries = [];hrfprf=[];
 
 % check for calling convention from interrogator
 if (length(args) >= 7) && isnumeric(args{6})
@@ -708,6 +727,7 @@ if (length(args) >= 7) && isnumeric(args{6})
   y = args{5};
   s = args{6};
   %roi = args{7};
+  hrfprf = args{7};
   fitParams.dispFit = true;
   fitParams.optimDisplay = 'final';
   fitParams.algorithm = 'nelder-mead';
