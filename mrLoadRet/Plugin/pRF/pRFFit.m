@@ -227,6 +227,10 @@ end
 
 if ~ieNotDefined('hrfprf'),
     params = hrfprf;
+    % possibly we need to send to getCanonicalHRF to make sure the
+    % offsets/scaling line up...
+   
+    
 else
     
     % now do nonlinear fit
@@ -455,7 +459,8 @@ for i = 1:fitParams.concatInfo.n
     thisModelResponse = thisModelResponse - mean(thisModelResponse);
   end
   
-  if ~justGetModel
+  %if ~justGetModel
+  if isempty(justGetModel)
     % compute correlation of this portion of the model response with time series
     thisTSeries = tSeries(fitParams.concatInfo.runTransition(i,1):fitParams.concatInfo.runTransition(i,2));
     thisTSeries = thisTSeries - mean(thisTSeries);
@@ -593,6 +598,7 @@ switch (fitParams.rfType)
     % use a fixed single gaussian
     p.canonical.type = 'gamma';
     p.canonical.lengthInSeconds = 25;
+    %p.canonical.lengthInSeconds = 55; % changing this, see what happens
     p.canonical.timelag = params(4);
     p.canonical.tau = params(5);
     p.canonical.exponent = fitParams.exponent;
