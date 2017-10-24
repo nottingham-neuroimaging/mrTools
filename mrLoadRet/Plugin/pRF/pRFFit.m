@@ -162,7 +162,7 @@ if isfield(fitParams,'prefit') && ~isempty(fitParams.prefit)
     % compute all the model response, using parfor loop
     parfor i = 1:fitParams.prefit.n
       % fit the model with these parameters
-      [residual modelResponse rfModel] = getModelResidual([fitParams.prefit.x(i) fitParams.prefit.y(i) fitParams.prefit.rfHalfWidth(i) params(4:end)],tSeries,fitParams,1);
+      [residual, modelResponse, rfModel] = getModelResidual([fitParams.prefit.x(i) fitParams.prefit.y(i) fitParams.prefit.rfHalfWidth(i) params(4:end)],tSeries,fitParams,1);
       % normalize to 0 mean unit length
       allModelResponse(i,:) = (modelResponse-mean(modelResponse))./sqrt(sum(modelResponse.^2))';
       if fitParams.verbose
@@ -439,8 +439,9 @@ modelResponse = [];residual = [];
 % create the model for each concat
 for i = 1:fitParams.concatInfo.n
   % get model response
-  nFrames = fitParams.concatInfo.runTransition(i,2);
-  thisModelResponse = convolveModelWithStimulus(rfModel,fitParams.stim{i},nFrames);
+  %nFrames = fitParams.concatInfo.runTransition(i,2);
+  %thisModelResponse = convolveModelWithStimulus(rfModel,fitParams.stim{i},nFrames);
+  thisModelResponse = convolveModelWithStimulus(rfModel,fitParams.stim{i});
 
   % get a model hrf
   hrf = getCanonicalHRF(p.canonical,fitParams.framePeriod);
@@ -619,15 +620,16 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   convolveModelWithStimulus   %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function modelResponse = convolveModelWithStimulus(rfModel,stim,nFrames)
+function modelResponse = convolveModelWithStimulus(rfModel,stim) %nFrames
 
 % get number of frames
-nStimFrames = size(stim.im,3);
+%nStimFrames = size(stim.im,3);
+nFrames = size(stim.im,3);
 
 % preallocate memory
 modelResponse = zeros(1,nFrames);
 
-for frameNum = 1:nStimFrames
+for frameNum = 1:nFrames %nStimFrames
   % multipy the stimulus frame by frame with the rfModel
   % and take the sum
   modelResponse(frameNum) = sum(sum(rfModel.*stim.im(:,:,frameNum)));

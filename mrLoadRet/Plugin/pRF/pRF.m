@@ -204,6 +204,8 @@ for scanNum = params.scanNum
   % preallocate some space
   rawParams = nan(fit.nParams,n);
   r = nan(n,fit.concatInfo.n);
+  thisr2 = nan(1,n);
+  thisRawParamsCoords = nan(3,n);
   
 %   thisData = cell(1,numel(overlaySpec));
 %   for iOverlay = 1:numel(overlaySpec)
@@ -285,7 +287,7 @@ for scanNum = params.scanNum
      %myVar = eval(inp);
 
     % now loop over each voxel
-    for ii = blockStart:blockEnd
+    parfor ii = blockStart:blockEnd
         fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo);
         %fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo, 'hrfprf', myVar(:,ii));
        
@@ -329,6 +331,8 @@ for scanNum = params.scanNum
             % keep parameters
             rawParams(:,ii) = fit.params(:);
             r(ii,:) = fit.r;
+            thisr2(ii) = fit.r2;
+            thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
         end
     end
     
@@ -351,6 +355,8 @@ for scanNum = params.scanNum
   
   pRFAnal.d{scanNum}.params = rawParams;
   pRFAnal.d{scanNum}.r = r;
+  pRFAnal.d{scanNum}.r2 = thisr2;
+  pRFAnal.d{scanNum}.rawCoords = thisRawParamsCoords;
 
   iScan = find(params.scanNum == scanNum);
   thisParams.scanNum = params.scanNum(iScan);
