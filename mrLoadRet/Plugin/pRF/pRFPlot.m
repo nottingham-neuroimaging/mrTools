@@ -85,7 +85,9 @@ else
 end
 
 % get params
-m = pRFFit(v,scanNum,x,y,z,'stim',d.stim,'getModelResponse=1','params',params,'concatInfo',d.concatInfo,'fitTypeParams',a.params.pRFFit,'paramsInfo',paramsInfo);
+hrfprf = 1;
+%m = pRFFit(v,scanNum,x,y,z,'stim',d.stim,'getModelResponse=1','params',params,'concatInfo',d.concatInfo,'fitTypeParams',a.params.pRFFit,'paramsInfo',paramsInfo);
+m = pRFFit(v,scanNum,x,y,z,'stim',d.stim,'getModelResponse=1','params',params,'concatInfo',d.concatInfo,'fitTypeParams',a.params.pRFFit,'paramsInfo',paramsInfo, 'hrfprf', hrfprf);
 % and plot, set a global so that we can use the mouse to display
 % different time points
 global gpRFPlot;
@@ -109,7 +111,16 @@ hold on
 plot(m.tSeries,'k.-');
 axis tight
 % plot model
-plot(m.modelResponse,'r-');
+
+if hrfprf == 1
+    shifty = 5;
+    tt = 1:length(m.modelResponse);
+    plot(tt-shifty, m.modelResponse, 'r-'); % this is a temporary fix!!!
+else
+    plot(m.modelResponse,'r-');
+end
+
+
 if d.concatInfo.n > 1
   vline(d.concatInfo.runTransition(2:end,1));
 end

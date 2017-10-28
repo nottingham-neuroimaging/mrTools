@@ -226,11 +226,21 @@ if isfield(fitParams,'prefit') && ~isempty(fitParams.prefit)
 end
 
 if ~ieNotDefined('hrfprf'),
-    params = hrfprf;
+    %params = hrfprf;
+    
+    fitParams.hrfprf = hrfprf;
+    
+    if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
+        [params resnorm residual exitflag output lambda jacobian] = lsqnonlin(@getModelResidual,fitParams.initParams,fitParams.minParams,fitParams.maxParams,fitParams.optimParams,tSeries,fitParams);
+    elseif strcmp(lower(fitParams.algorithm),'nelder-mead')
+        [params fval exitflag] = fminsearch(@getModelResidual,fitParams.initParams,fitParams.optimParams,(tSeries-mean(tSeries))/var(tSeries.^2),fitParams);
+    else
+        disp(sprintf('(pRFFit) Unknown optimization algorithm: %s',fitParams.algorithm));
+        return
+    end    
     % possibly we need to send to getCanonicalHRF to make sure the
     % offsets/scaling line up...
-   
-    
+
 else
     
     % now do nonlinear fit
@@ -431,6 +441,8 @@ rfModel = getRFModel(p,fitParams);
 %tempfix for crossVal
 if ieNotDefined('hrfprfcheck')
     hrfprfcheck = 0;
+elseif hrfprfcheck == 1
+    fitParams.hrfprf = 1;
 end
 
 % init model response
@@ -444,7 +456,14 @@ for i = 1:fitParams.concatInfo.n
   thisModelResponse = convolveModelWithStimulus(rfModel,fitParams.stim{i});
 
   % get a model hrf
-  hrf = getCanonicalHRF(p.canonical,fitParams.framePeriod);
+  if isfield(fitParams, 'hrfprf')
+      hrf.hrf = fitParams.hrfprf;
+      hrf.time = 0:fitParams.framePeriod:p.canonical.lengthInSeconds; % this if 24 seconds, tr 2s fyi...
+      % normalize to amplitude of 1
+      hrf.hrf = hrf.hrf / max(hrf.hrf);
+  else
+      hrf = getCanonicalHRF(p.canonical,fitParams.framePeriod);
+  end
 
   % and convolve in time.
   thisModelResponse = convolveModelResponseWithHRF(thisModelResponse,hrf);
@@ -461,7 +480,13 @@ for i = 1:fitParams.concatInfo.n
   end
   
   %if ~justGetModel
+  %if isempty(justGetModel) % this might change
   if isempty(justGetModel)
+      justGetModel = 0;
+      %keyboard
+  end
+  
+  if justGetModel == 0 
     % compute correlation of this portion of the model response with time series
     thisTSeries = tSeries(fitParams.concatInfo.runTransition(i,1):fitParams.concatInfo.runTransition(i,2));
     thisTSeries = thisTSeries - mean(thisTSeries);
@@ -485,16 +510,24 @@ for i = 1:fitParams.concatInfo.n
   end
   
   % make into a column array
-  modelResponse = [modelResponse;thisModelResponse(:)];
-  residual = [residual;thisResidual(:)];
+  % Why are we adding rubbish before the actual response??
+%   modelResponse = [modelResponse;thisModelResponse(:)];
+%   residual = [residual;thisResidual(:)];
+    modelResponse = thisModelResponse(:);
+    residual = thisResidual(:);
+
+
 end
 
 % return model only
 if justGetModel,return,end
 
 % scale the whole time series
-if ~fitParams.betaEachScan
-  [modelResponse residual] = scaleAndOffset(modelResponse,tSeries(:));
+
+if ~isfield(fitParams, 'hrfprf')
+    if ~fitParams.betaEachScan
+        [modelResponse residual] = scaleAndOffset(modelResponse,tSeries(:));
+    end
 end
 
 
@@ -507,6 +540,17 @@ end
 if strcmp(lower(fitParams.algorithm),'nelder-mead')
   residual = -corr(modelResponse,tSeries);
 %  disp(sprintf('(pRFFit:getModelResidual) r: %f',residual));
+end
+
+% scale and offset (manual)
+mref = mean(tSeries);
+stdRef = std(tSeries);
+mSig = mean(modelResponse);
+stdSig = std(modelResponse);
+newSig = ((modelResponse - mSig)/stdSig) * stdRef + mref;
+
+if hrfprfcheck == 1
+    modelResponse = newSig;
 end
 
 end
@@ -720,7 +764,7 @@ rfModel = exp(-(((fitParams.stimX-params.x).^2)/(2*(params.std^2))+((fitParams.s
 
 end
 %%%%%%%%%%%%%%%%%%%
-%    parseArgs    %
+%%    parseArgs    %
 %%%%%%%%%%%%%%%%%%%
 function [v, scanNum, x, y, s, fitParams, tSeries, hrfprf] = parseArgs(args)
 
@@ -799,7 +843,7 @@ elseif length(args) >= 5
   xFlip=[];yFlip=[];timeShiftStimulus=[];rfType=[];betaEachScan=[];fitTypeParams = [];
   dispIndex = [];dispN = [];returnPrefit = [];tSeries=[];quickPrefit=[];junkFrames=[];
   verbose = [];justGetStimImage = [];framePeriod = [];
-  getArgs({args{6:end}},{'dispFit=0','stim=[]','getModelResponse=0','params=[]','concatInfo=[]','prefit=[]','xFlipStimulus=0','yFlipStimulus=0','timeShiftStimulus=0','rfType=gaussian','betaEachScan=0','fitTypeParams=[]','justGetStimImage=[]','verbose=1','dispIndex=[]','dispN=[]','returnPrefit=0','quickPrefit=0','tSeries=[]','junkFrames=[]','framePeriod=[]','paramsInfo=[]'});
+  getArgs({args{6:end}},{'dispFit=0','stim=[]','getModelResponse=0','params=[]','concatInfo=[]','prefit=[]','xFlipStimulus=0','yFlipStimulus=0','timeShiftStimulus=0','rfType=gaussian','betaEachScan=0','fitTypeParams=[]','justGetStimImage=[]','verbose=1','dispIndex=[]','dispN=[]','returnPrefit=0','quickPrefit=0','tSeries=[]','junkFrames=[]','framePeriod=[]','paramsInfo=[]', 'hrfprf=[]'});
   % default to display fit
   fitParams.dispFit = dispFit;
   fitParams.stim = stim;
