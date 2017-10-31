@@ -104,16 +104,32 @@ end
 % set up the fit routine params
 fitParams = setFitParams(fitParams);
 
-% just return model response for already calcualted params
+% just return model response for already calculated params
 if fitParams.getModelResponse
-  % get model fit
-  [residual fit.modelResponse fit.rfModel] = getModelResidual(fitParams.params,tSeries,fitParams, [], hrfprfcheck);
-  % get the canonical
-  fit.p = getFitParams(fitParams.params,fitParams);
-  fit.canonical = getCanonicalHRF(fit.p.canonical,fitParams.framePeriod);
-  % return tSeries
-  fit.tSeries = tSeries;
-  return;
+    
+    if ~ieNotDefined('hrfprf'),
+        %params = hrfprf;
+        
+        fitParams.hrfprf = hrfprf;
+        % get model fit
+        [residual fit.modelResponse fit.rfModel] = getModelResidual(fitParams.params,tSeries,fitParams, [], hrfprfcheck);
+        % get the canonical
+        fit.p = getFitParams(fitParams.params,fitParams);
+        fit.canonical = getCanonicalHRF(fit.p.canonical,fitParams.framePeriod);
+        % return tSeries
+        fit.tSeries = tSeries;
+        return;
+        
+    else
+        [residual fit.modelResponse fit.rfModel] = getModelResidual(fitParams.params,tSeries,fitParams, [], hrfprfcheck);
+        % get the canonical
+        fit.p = getFitParams(fitParams.params,fitParams);
+        fit.canonical = getCanonicalHRF(fit.p.canonical,fitParams.framePeriod);
+        % return tSeries
+        fit.tSeries = tSeries;
+        return;
+        
+    end
 end
 
 % return some fields
@@ -441,8 +457,6 @@ rfModel = getRFModel(p,fitParams);
 %tempfix for crossVal
 if ieNotDefined('hrfprfcheck')
     hrfprfcheck = 0;
-elseif hrfprfcheck == 1
-    fitParams.hrfprf = 1;
 end
 
 % init model response
@@ -543,14 +557,19 @@ if strcmp(lower(fitParams.algorithm),'nelder-mead')
 end
 
 % scale and offset (manual)
-mref = mean(tSeries);
-stdRef = std(tSeries);
-mSig = mean(modelResponse);
-stdSig = std(modelResponse);
-newSig = ((modelResponse - mSig)/stdSig) * stdRef + mref;
+% mref = mean(tSeries);
+% stdRef = std(tSeries);
+% mSig = mean(modelResponse);
+% stdSig = std(modelResponse);
+% newSig = ((modelResponse - mSig)/stdSig) * stdRef + mref;
 
 if hrfprfcheck == 1
-    modelResponse = newSig;
+    
+    X = modelResponse(:);
+    X(:,2) = 1;
+    b = X \ tSeries; % backslash linear regression
+    modelResponse = X * b;
+    %modelResponse = newSig;
 end
 
 end

@@ -14,6 +14,9 @@ if ~any(nargin == [7])
   return
 end
 
+% magic number coding!
+thehrfs = load('rh_5s_gethrf_testthr.mat');
+
 % see if the shift key is down
 %shiftDown = any(strcmp(get(viewGet(v,'figureNumber'),'CurrentModifier'),'shift'));
 shiftDown = any(strcmp(get(viewGet(v,'figureNumber'),'SelectionType'),'extend'));
@@ -85,9 +88,18 @@ else
 end
 
 % get params
-hrfprf = 0;
-m = pRFFit(v,scanNum,x,y,z,'stim',d.stim,'getModelResponse=1','params',params,'concatInfo',d.concatInfo,'fitTypeParams',a.params.pRFFit,'paramsInfo',paramsInfo);
-%m = pRFFit(v,scanNum,x,y,z,'stim',d.stim,'getModelResponse=1','params',params,'concatInfo',d.concatInfo,'fitTypeParams',a.params.pRFFit,'paramsInfo',paramsInfo, 'hrfprf', hrfprf);
+if exist('thehrfs', 'var')
+    hrfprf = 1;
+    whichVoxel_hrf = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x,y,z));
+    % check we are consistent with coords
+    % disp(thehrfs.hrf_struct.mycoords(:,whichVoxel_hrf))
+    myVar = thehrfs.hrf_struct.yf;
+    m = pRFFit(v,scanNum,x,y,z,'stim',d.stim,'getModelResponse=1','params',params,'concatInfo',d.concatInfo,'fitTypeParams',a.params.pRFFit,'paramsInfo',paramsInfo, 'hrfprf', myVar(:,whichVoxel_hrf));
+    
+else
+    m = pRFFit(v,scanNum,x,y,z,'stim',d.stim,'getModelResponse=1','params',params,'concatInfo',d.concatInfo,'fitTypeParams',a.params.pRFFit,'paramsInfo',paramsInfo);
+end
+
 % and plot, set a global so that we can use the mouse to display
 % different time points
 global gpRFPlot;
@@ -112,13 +124,13 @@ plot(m.tSeries,'k.-');
 axis tight
 % plot model
 
-if hrfprf == 1
-    shifty = 5;
-    tt = 1:length(m.modelResponse);
-    plot(tt-shifty, m.modelResponse, 'r-'); % this is a temporary fix!!!
-else
-    plot(m.modelResponse,'r-');
-end
+%if exist('thehrfs', 'var')
+%    shifty = 5;
+%    tt = 1:length(m.modelResponse);
+%    plot(tt-shifty, m.modelResponse, 'r-'); % this is a temporary fix!!!
+%else
+plot(m.modelResponse,'r-');
+%end
 
 
 if d.concatInfo.n > 1
