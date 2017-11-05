@@ -15,7 +15,9 @@ if ~any(nargin == [7])
 end
 
 % magic number coding!
-thehrfs = load('rh_5s_gethrf_testthr.mat');
+%thehrfs = load('rh_5s_gethrf_testthr.mat');
+%thehrfs = load('rh_1s_gethrf_cothr.mat');
+thehrfs = load('deconv1s_new.mat');
 
 % see if the shift key is down
 %shiftDown = any(strcmp(get(viewGet(v,'figureNumber'),'CurrentModifier'),'shift'));
@@ -90,10 +92,12 @@ end
 % get params
 if exist('thehrfs', 'var')
     hrfprf = 1;
-    whichVoxel_hrf = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x,y,z));
+    %whichVoxel_hrf = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x,y,z));
+    whichVoxel_hrf = find(thehrfs.idx == sub2ind(scanDims,x,y,z));
+    myVar = thehrfs.r;
     % check we are consistent with coords
     % disp(thehrfs.hrf_struct.mycoords(:,whichVoxel_hrf))
-    myVar = thehrfs.hrf_struct.yf;
+    %myVar = thehrfs.hrf_struct.yf;
     m = pRFFit(v,scanNum,x,y,z,'stim',d.stim,'getModelResponse=1','params',params,'concatInfo',d.concatInfo,'fitTypeParams',a.params.pRFFit,'paramsInfo',paramsInfo, 'hrfprf', myVar(:,whichVoxel_hrf));
     
 else

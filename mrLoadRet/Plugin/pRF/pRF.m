@@ -265,6 +265,14 @@ for scanNum = params.scanNum
     loadROI = loadROITSeries(v,loadROI,scanNum,params.groupName);
     % reorder x,y,z coordinates since they can get scrambled in loadROITSeries
     
+    % testing!!!!
+
+    
+%     blockEnd = size(thehrfs.r,2);
+%     blockSize = blockEnd;
+%     n = blockEnd;
+   
+    
     % hack to stop nans
     blockEnd = size(loadROI.scanCoords,2); % HACK TO STOP NANS
     blockSize = blockEnd;
@@ -282,15 +290,32 @@ for scanNum = params.scanNum
     end
     
     % adding some code here to use pre-fitted params
-     keyboard
-     inp = input('Give me some hrf params', 's');
-     myVar = eval(inp);
-
+%      keyboard
+%      inp = input('Give me some hrf params', 's');
+%      myVar = eval(inp);
+     %thehrfs = load('rh_5s_gethrf_cothr.mat');
+     %myVar = thehrfs.hrf_struct.yf;
+     
+    thehrfs = load('deconv1s_new.mat');
+    myVar = thehrfs.r;
+    thehrfs.idx = thehrfs.idx(1:blockEnd); 
     % now loop over each voxel
-    parfor ii = blockStart:blockEnd
-        %fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo);
-        fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo, 'hrfprf', myVar(:,ii));
-       
+    tempStart = 1;
+    parfor ii = tempStart:blockEnd
+        %myVoxel = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x(ii),y(ii),z(ii)));
+        
+        myVoxel = find(thehrfs.idx == sub2ind(scanDims,x(ii),y(ii),z(ii)));
+        
+        if myVoxel > length(thehrfs.r)
+            disp('caught one')
+            fit = [];
+        else
+            
+            %fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo);
+            fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo, 'hrfprf', myVar(:,myVoxel));
+            
+        end
+        
         if ~isempty(fit)
             % keep data, note that we are keeping temporarily in
             % a vector here so that parfor won't complain
