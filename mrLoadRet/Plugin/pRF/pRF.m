@@ -207,6 +207,10 @@ for scanNum = params.scanNum
   thisr2 = nan(1,n);
   thisRawParamsCoords = nan(3,n);
   
+  % save the pRF's dodgy hrfs
+  prfHRFudge = 13;
+  myrawHrfs = nan(prfHRFudge, n);
+  
 %   thisData = cell(1,numel(overlaySpec));
 %   for iOverlay = 1:numel(overlaySpec)
 %       thisData{iOverlay}{1} = ['this' overlaySpec{iOverlay}{2}];
@@ -293,24 +297,32 @@ for scanNum = params.scanNum
 %      keyboard
 %      inp = input('Give me some hrf params', 's');
 %      myVar = eval(inp);
-     %thehrfs = load('rh_5s_gethrf_cothr.mat');
+     %thehrfs = load('rh_1s_gethrf_cothr.mat');
      %myVar = thehrfs.hrf_struct.yf;
      
-    thehrfs = load('deconv1s_new.mat');
+    %thehrfs = load('deconv1s_new.mat');
+    thehrfs = load('decah.mat');
     myVar = thehrfs.r;
-    thehrfs.idx = thehrfs.idx(1:blockEnd); 
+    %thehrfs.idx = thehrfs.idx(1:blockEnd); 
     % now loop over each voxel
     tempStart = 1;
     %warning('off', 'MATLAB:rankDeficientMatrix');
     parfor ii = blockStart:blockEnd
+        
         %myVoxel = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x(ii),y(ii),z(ii)));
+        
         
         myVoxel = find(thehrfs.idx == sub2ind(scanDims,x(ii),y(ii),z(ii)));
         
-        if myVoxel > length(thehrfs.r)
+        if isempty(myVoxel)
+            fprintf('\ncaught an empty, x %d y %d z %d, idx %f\n', x(ii), y(ii), z(ii), myVoxel);
+            
+            fit = [];
+        elseif myVoxel > length(thehrfs.r)
             disp('caught one')
             fit = [];
         else
+            
             
             %fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo);
             fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo, 'hrfprf', myVar(:,myVoxel));
@@ -359,6 +371,7 @@ for scanNum = params.scanNum
             r(ii,:) = fit.r;
             thisr2(ii) = fit.r2;
             thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
+            %myrawHrfs(:,ii) = fit.myhrf.hrf; %save out prfs hrfs
         end
     end
     
@@ -383,6 +396,7 @@ for scanNum = params.scanNum
   pRFAnal.d{scanNum}.r = r;
   pRFAnal.d{scanNum}.r2 = thisr2;
   pRFAnal.d{scanNum}.rawCoords = thisRawParamsCoords;
+  %pRFAnal.d{scanNum}.myrawHrfs = myrawHrfs; % save out prfs hrfs
 
   iScan = find(params.scanNum == scanNum);
   thisParams.scanNum = params.scanNum(iScan);

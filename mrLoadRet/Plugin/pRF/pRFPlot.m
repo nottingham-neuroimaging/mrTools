@@ -17,7 +17,7 @@ end
 % magic number coding!
 %thehrfs = load('rh_5s_gethrf_testthr.mat');
 %thehrfs = load('rh_1s_gethrf_cothr.mat');
-thehrfs = load('deconv1s_new.mat');
+thehrfs = load('decah.mat');
 
 % see if the shift key is down
 %shiftDown = any(strcmp(get(viewGet(v,'figureNumber'),'CurrentModifier'),'shift'));

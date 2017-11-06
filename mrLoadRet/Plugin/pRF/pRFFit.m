@@ -277,7 +277,7 @@ fit.rfType = fitParams.rfType;
 fit.params = params;
 
 % compute r^2
-[residual modelResponse rfModel fit.r] = getModelResidual(params,tSeries,fitParams, [], hrfprfcheck);
+[residual modelResponse rfModel fit.r fit.myhrf] = getModelResidual(params,tSeries,fitParams, [], hrfprfcheck);
 if strcmp(lower(fitParams.algorithm),'levenberg-marquardt')
   fit.r2 = 1-sum((residual-mean(residual)).^2)/sum((tSeries-mean(tSeries)).^2);
 elseif strcmp(lower(fitParams.algorithm),'nelder-mead')
@@ -442,7 +442,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   getModelResidual   %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
-function [residual modelResponse rfModel r] = getModelResidual(params,tSeries,fitParams,justGetModel, hrfprfcheck)
+function [residual modelResponse rfModel r hrf] = getModelResidual(params,tSeries,fitParams,justGetModel, hrfprfcheck)
 
 residual = [];
 if nargin < 4, justGetModel = 0;end
@@ -564,10 +564,11 @@ end
 % newSig = ((modelResponse - mSig)/stdSig) * stdRef + mref;
 
 if hrfprfcheck == 1
-    %warning('off', 'MATLAB:rankDeficientMatrix');
+%     warning('off', 'MATLAB:rankDeficientMatrix');
     X = modelResponse(:);
     X(:,2) = 1;
-    b = X \ tSeries; % backslash linear regression
+    %b = X \ tSeries; % backslash linear regression
+    b = pinv(X) * tSeries;
     modelResponse = X * b;
     %modelResponse = newSig;
 end
