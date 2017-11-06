@@ -564,7 +564,7 @@ end
 % newSig = ((modelResponse - mSig)/stdSig) * stdRef + mref;
 
 if hrfprfcheck == 1
-    
+    %warning('off', 'MATLAB:rankDeficientMatrix');
     X = modelResponse(:);
     X(:,2) = 1;
     b = X \ tSeries; % backslash linear regression

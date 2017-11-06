@@ -301,7 +301,8 @@ for scanNum = params.scanNum
     thehrfs.idx = thehrfs.idx(1:blockEnd); 
     % now loop over each voxel
     tempStart = 1;
-    parfor ii = tempStart:blockEnd
+    %warning('off', 'MATLAB:rankDeficientMatrix');
+    parfor ii = blockStart:blockEnd
         %myVoxel = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x(ii),y(ii),z(ii)));
         
         myVoxel = find(thehrfs.idx == sub2ind(scanDims,x(ii),y(ii),z(ii)));
