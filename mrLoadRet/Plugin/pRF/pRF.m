@@ -206,10 +206,7 @@ for scanNum = params.scanNum
   r = nan(n,fit.concatInfo.n);
   thisr2 = nan(1,n);
   thisRawParamsCoords = nan(3,n);
-  
-  % save the pRF's dodgy hrfs
-  prfHRFudge = 13;
-  myrawHrfs = nan(prfHRFudge, n);
+
   
 %   thisData = cell(1,numel(overlaySpec));
 %   for iOverlay = 1:numel(overlaySpec)
@@ -297,28 +294,33 @@ for scanNum = params.scanNum
 %      keyboard
 %      inp = input('Give me some hrf params', 's');
 %      myVar = eval(inp);
-     %thehrfs = load('rh_1s_gethrf_cothr.mat');
-     %myVar = thehrfs.hrf_struct.yf;
+     thehrfs = load('rh_5s_gethrf_cothr.mat');
+     myVar = thehrfs.hrf_struct.yf;
      
     %thehrfs = load('deconv1s_new.mat');
-    thehrfs = load('decah.mat');
-    myVar = thehrfs.r;
+    %thehrfs = load('decah.mat');
+    %myVar = thehrfs.r;
     %thehrfs.idx = thehrfs.idx(1:blockEnd); 
     % now loop over each voxel
-    tempStart = 1;
+    %tempStart = 1;
+      
+  % save the pRF's dodgy hrfs
+    prfHRFudge = 13;
+    myrawHrfs = nan(prfHRFudge, n);
+    
     %warning('off', 'MATLAB:rankDeficientMatrix');
     parfor ii = blockStart:blockEnd
         
-        %myVoxel = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x(ii),y(ii),z(ii)));
+        myVoxel = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x(ii),y(ii),z(ii)));
         
         
-        myVoxel = find(thehrfs.idx == sub2ind(scanDims,x(ii),y(ii),z(ii)));
-        
+        %myVoxel = find(thehrfs.idx == sub2ind(scanDims,x(ii),y(ii),z(ii)));
+%         
         if isempty(myVoxel)
             fprintf('\ncaught an empty, x %d y %d z %d, idx %f\n', x(ii), y(ii), z(ii), myVoxel);
             
             fit = [];
-        elseif myVoxel > length(thehrfs.r)
+        elseif myVoxel > length(thehrfs.hrf_struct.yf)
             disp('caught one')
             fit = [];
         else
