@@ -294,7 +294,8 @@ for scanNum = params.scanNum
 %      keyboard
 %      inp = input('Give me some hrf params', 's');
 %      myVar = eval(inp);
-     thehrfs = load('rh_5s_gethrf_cothr.mat');
+     %thehrfs = load('rh_5s_gethrf_cothr.mat');
+     thehrfs = load('wiener_deconv_prfhrfRefit.mat');
      myVar = thehrfs.hrf_struct.yf;
      
     %thehrfs = load('deconv1s_new.mat');

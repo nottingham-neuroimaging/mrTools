@@ -17,7 +17,7 @@ end
 % magic number coding!
 %thehrfs = load('rh_5s_gethrf_testthr.mat');
 %thehrfs = load('rh_1s_gethrf_cothr.mat');
-thehrfs = load('decah.mat');
+thehrfs = load('wiener_deconv_hrfs.mat');
 
 % see if the shift key is down
 %shiftDown = any(strcmp(get(viewGet(v,'figureNumber'),'CurrentModifier'),'shift'));
@@ -93,8 +93,8 @@ end
 if exist('thehrfs', 'var')
     hrfprf = 1;
     %whichVoxel_hrf = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x,y,z));
-    whichVoxel_hrf = find(thehrfs.idx == sub2ind(scanDims,x,y,z));
-    myVar = thehrfs.r;
+    whichVoxel_hrf = find(thehrfs.idx_empty == sub2ind(scanDims,x,y,z));
+    myVar = thehrfs.wienerShapes_empty;
     % check we are consistent with coords
     % disp(thehrfs.hrf_struct.mycoords(:,whichVoxel_hrf))
     %myVar = thehrfs.hrf_struct.yf;

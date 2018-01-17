@@ -240,7 +240,7 @@ if isfield(fitParams,'prefit') && ~isempty(fitParams.prefit)
     return
   end
 end
-
+%keyboard
 if ~ieNotDefined('hrfprf'),
     %params = hrfprf;
     
@@ -557,21 +557,24 @@ if strcmp(lower(fitParams.algorithm),'nelder-mead')
 end
 
 % scale and offset (manual)
-% mref = mean(tSeries);
-% stdRef = std(tSeries);
-% mSig = mean(modelResponse);
-% stdSig = std(modelResponse);
-% newSig = ((modelResponse - mSig)/stdSig) * stdRef + mref;
-
-if hrfprfcheck == 1
-%     warning('off', 'MATLAB:rankDeficientMatrix');
-    X = modelResponse(:);
-    X(:,2) = 1;
+if fitParams.getModelResponse == 1
+    mref = mean(tSeries);
+    stdRef = std(tSeries);
+    mSig = mean(modelResponse);
+    stdSig = std(modelResponse);
+    modelResponse = ((modelResponse - mSig)/stdSig) * stdRef + mref;
     
-    b = X \ tSeries; % backslash linear regression
-    %b = pinv(X) * tSeries;
-    modelResponse = X * b;
-    %modelResponse = newSig;
+elseif fitParams.getModelResponse ~= 1
+    if hrfprfcheck == 1
+        %     warning('off', 'MATLAB:rankDeficientMatrix');
+        X = modelResponse(:);
+        X(:,2) = 1;
+        
+        b = X \ tSeries; % backslash linear regression
+        %b = pinv(X) * tSeries;
+        modelResponse = X * b;
+        %modelResponse = newSig;
+    end
 end
 
 end
