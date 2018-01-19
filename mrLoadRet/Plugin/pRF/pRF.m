@@ -295,8 +295,11 @@ for scanNum = params.scanNum
 %      inp = input('Give me some hrf params', 's');
 %      myVar = eval(inp);
      %thehrfs = load('rh_5s_gethrf_cothr.mat');
+     
+     %%%%%%%%% uncomment this one!
      thehrfs = load('wiener_deconv_prfhrfRefit.mat');
      myVar = thehrfs.hrf_struct.yf;
+     %%%%%%%%%
      
     %thehrfs = load('deconv1s_new.mat');
     %thehrfs = load('decah.mat');
@@ -312,11 +315,13 @@ for scanNum = params.scanNum
     %warning('off', 'MATLAB:rankDeficientMatrix');
     parfor ii = blockStart:blockEnd
         
+        % uncomment this one!
         myVoxel = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x(ii),y(ii),z(ii)));
         
         
         %myVoxel = find(thehrfs.idx == sub2ind(scanDims,x(ii),y(ii),z(ii)));
-%         
+        
+        %         %%%% uncomment this one!!!
         if isempty(myVoxel)
             fprintf('\ncaught an empty, x %d y %d z %d, idx %f\n', x(ii), y(ii), z(ii), myVoxel);
             
@@ -328,6 +333,8 @@ for scanNum = params.scanNum
             
             
             %fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo);
+            
+            %%%%%% uncomment this one!
             fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo, 'hrfprf', myVar(:,myVoxel));
             
         end
@@ -349,8 +356,8 @@ for scanNum = params.scanNum
             tempVar = zeros(length(overlayNames),1);
             
             for iOverlay = 1:numel(overlayNames)
-
-                % eval doesn't work when using parfor!!! 
+                
+                % eval doesn't work when using parfor!!!
                 %eval(sprintf('thisData(%d,%d) = fit.%s;',iOverlay,i,overlayNames{iOverlay}));
                 
                 % this gets around using eval
@@ -362,7 +369,7 @@ for scanNum = params.scanNum
                 
                 % this is temporary, gets overwritten each time
                 tempVar(iOverlay,1) = val;
-              
+                
                 
                 %thisData(iOverlay, ii) = val;
             end
