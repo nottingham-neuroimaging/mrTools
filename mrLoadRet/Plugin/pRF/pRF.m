@@ -297,7 +297,7 @@ for scanNum = params.scanNum
      %thehrfs = load('rh_5s_gethrf_cothr.mat');
      
      %%%%%%%%% uncomment this one!
-     thehrfs = load('wiener_deconv_prfhrfRefit.mat');
+     thehrfs = load('lh_wiener_prfhrfRefit.mat');
      myVar = thehrfs.hrf_struct.yf;
      %%%%%%%%%
      

@@ -761,15 +761,22 @@ if ~ieNotDefined('econtste')
   %hSte = errorbar(hAxes,(1:size(econt,1))', econt, econtste, 'k','lineStyle','none');
   %hSte = errorbar(hAxes, [1 2; 1 2; 1 2],econt, econtste, 'k','lineStyle','none');
   
-ctrs = 1:3;
+ctrs = 1:length(econt);
 data = econt;
 %figure
 hBar = bar(ctrs, data);
 ctr = [];
 ydt = [];
-for k1 = 1:size(data,2)
+if length(hBar) > 1
+    for k1 = 1:size(data,2)
+        ctr(k1,:) = bsxfun(@plus, hBar(1).XData, [hBar(k1).XOffset]');
+        ydt(k1,:) = hBar(k1).YData;
+    end
+else
+    k1 = 1;
     ctr(k1,:) = bsxfun(@plus, hBar(1).XData, [hBar(k1).XOffset]');
     ydt(k1,:) = hBar(k1).YData;
+    
 end
 %hold on
 hSte = errorbar( ctr', ydt', econtste, '.r');
