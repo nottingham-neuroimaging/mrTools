@@ -35,7 +35,7 @@ if nargin < 2,params =[];end
 % other arguments
 justGetParams=[];defaultParams=[];scanList=[];
 groupNum=[];
-getArgs(varargin,{'justGetParams=0','defaultParams=0','scanList=[]','groupNum=[]',  'hrfprf=[]'});
+getArgs(varargin,{'justGetParams=0','defaultParams=0','scanList=[]','groupNum=[]', 'hrfprf=[]'});
 
 % first get parameters
 if isempty(params)
@@ -226,13 +226,15 @@ for scanNum = params.scanNum
   junkFrames = viewGet(v,'junkFrames',scanNum);
 
   % compute pRF for each voxel in the restriction
-  if params.pRFFit.prefitOnly,algorithm='prefit-only';else,algorithm=params.pRFFit.algorithm;end
+  if params.pRFFit.prefitOnly,algorithm='prefit-only';else algorithm=params.pRFFit.algorithm;end
 
   % disp info about fitting
   dispHeader;
   disp(sprintf('(pRF) Scan %s:%i (restrict %s) running on %i processor(s)',params.groupName,scanNum,params.restrict,nProcessors));
   disp(sprintf('(pRF) Computing %s fits using %s for %i voxels',params.pRFFit.rfType,algorithm,n));
   dispHeader;
+ 
+      
 
   % this is a bit arbitrary but is the number of voxels to read in at a time.
   % should probably be either calculated based on memory demands or a
@@ -290,100 +292,127 @@ for scanNum = params.scanNum
       dispHeader(sprintf('(pRF) %0.1f%% done in %s (Estimated time remaining: %s)',100*blockStart/n,mlrDispElapsedTime(toc),mlrDispElapsedTime((toc*n/blockStart) - toc)));
     end
     
-    % adding some code here to use pre-fitted params
-%      keyboard
-%      inp = input('Give me some hrf params', 's');
-%      myVar = eval(inp);
-     %thehrfs = load('rh_5s_gethrf_cothr.mat');
-     
-     %%%%%%%%% uncomment this one!
-     thehrfs = load('lh_wiener_prfhrfRefit.mat');
-     myVar = thehrfs.hrf_struct.yf;
-     %%%%%%%%%
-     
-    %thehrfs = load('deconv1s_new.mat');
-    %thehrfs = load('decah.mat');
-    %myVar = thehrfs.r;
-    %thehrfs.idx = thehrfs.idx(1:blockEnd); 
-    % now loop over each voxel
-    %tempStart = 1;
-      
+    % check if we are running HRFpRF or not
+    % if yes, then uigetfile and load in your hrfs
+    % this will crash if it is put outside the block for loop above
+    if params.pRFFit.HRFpRF == 1
+        disp('Give me your HRFs. Remember, these should be outputted from prfhrfRefit and then ideally from deconvRealDataWiener')
+        myfilename_hrf = uigetfile;
+        thehrfs = load(myfilename_hrf);
+        
+        myVar = thehrfs.hrf_struct.yf;
+   
+    end
+
   % save the pRF's dodgy hrfs
     prfHRFudge = 13;
     myrawHrfs = nan(prfHRFudge, n);
     
-    %warning('off', 'MATLAB:rankDeficientMatrix');
-    parfor ii = blockStart:blockEnd
-        
-        % uncomment this one!
-        myVoxel = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x(ii),y(ii),z(ii)));
-        
-        
-        %myVoxel = find(thehrfs.idx == sub2ind(scanDims,x(ii),y(ii),z(ii)));
-        
-        %         %%%% uncomment this one!!!
-        if isempty(myVoxel)
-            fprintf('\ncaught an empty, x %d y %d z %d, idx %f\n', x(ii), y(ii), z(ii), myVoxel);
-            
-            fit = [];
-        elseif myVoxel > length(thehrfs.hrf_struct.yf)
-            disp('caught one')
-            fit = [];
-        else
-            
-            
-            %fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo);
-            
-            %%%%%% uncomment this one!
-            fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,'paramsInfo',paramsInfo, 'hrfprf', myVar(:,myVoxel));
-            
-        end
-        
-        if ~isempty(fit)
-            % keep data, note that we are keeping temporarily in
-            % a vector here so that parfor won't complain
-            % then afterwords we put it into the actual overlay struct
-            % 	thisr2(i) = fit.r2;
-            % 	thisPolarAngle(i) = fit.polarAngle;
-            % 	thisEccentricity(i) = fit.eccentricity;
-            % 	thisRfHalfWidth(i) = fit.std;
-            
-            % parfor can't classify thisData, because it doesn't do order
-            % very well...
-            % so let's make a tempVar which is overwritten each time, then
-            % save this into thisData outside the nested forloop - Jim
-            
-            tempVar = zeros(length(overlayNames),1);
-            
-            for iOverlay = 1:numel(overlayNames)
+    
+    % massive if loop for checking if we want to use pre-loaded HRFs, or
+    % let pRF do the HRF fitting for us.
+    if params.pRFFit.HRFpRF == 1
+        %keyboard
+        parfor ii = blockStart:blockEnd
+            myVoxel = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x(ii),y(ii),z(ii)));
+            if isempty(myVoxel)
+                fprintf('\ncaught an empty, x %d y %d z %d, idx %f\n', x(ii), y(ii), z(ii), myVoxel);
                 
-                % eval doesn't work when using parfor!!!
-                %eval(sprintf('thisData(%d,%d) = fit.%s;',iOverlay,i,overlayNames{iOverlay}));
+                fit = [];
+            elseif myVoxel > length(thehrfs.hrf_struct.yf)
+                disp('caught one')
+                fit = [];
+            else
                 
-                % this gets around using eval
-                % but leads to other parallel processing issues...
-                test = strcmpi(fieldnames(fit), overlayNames(iOverlay) );
-                %pos = find(test==1);
-                bla = struct2cell(fit);
-                val = cell2mat(bla(test==1));
-                
-                % this is temporary, gets overwritten each time
-                tempVar(iOverlay,1) = val;
-                
-                
-                %thisData(iOverlay, ii) = val;
+                fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,...
+                    'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,...
+                    'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,...
+                    'paramsInfo',paramsInfo, 'hrfprf', myVar(:,myVoxel));
             end
-            % now put the values for this voxel into some sort of order :)
-            thisData(:,ii) = tempVar;
-            
-            % keep parameters
-            rawParams(:,ii) = fit.params(:);
-            r(ii,:) = fit.r;
-            thisr2(ii) = fit.r2;
-            thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
-            %myrawHrfs(:,ii) = fit.myhrf.hrf; %save out prfs hrfs
+            if ~isempty(fit)
+                tempVar = zeros(length(overlayNames),1);
+                for iOverlay = 1:numel(overlayNames)
+                    
+                    test = strcmpi(fieldnames(fit), overlayNames(iOverlay) );
+                    %pos = find(test==1);
+                    bla = struct2cell(fit);
+                    val = cell2mat(bla(test==1));
+                    % this is temporary, gets overwritten each time
+                    tempVar(iOverlay,1) = val;
+                end
+                % now put the values for this voxel into some sort of order :)
+                thisData(:,ii) = tempVar;
+                
+                % keep parameters
+                rawParams(:,ii) = fit.params(:);
+                r(ii,:) = fit.r;
+                thisr2(ii) = fit.r2;
+                thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
+                %myrawHrfs(:,ii) = fit.myhrf.hrf; %save out prfs hrfs
+            end
         end
-    end
+        
+    else
+        
+        
+        
+        
+        % regular prf fitting
+        parfor ii = blockStart:blockEnd
+
+            fit = pRFFit(v,scanNum,x(ii),y(ii),z(ii),'stim',stim,'concatInfo',concatInfo,...
+                'prefit',prefit,'fitTypeParams',params.pRFFit,'dispIndex',ii,'dispN',n,...
+                'tSeries',loadROI.tSeries(ii-blockStart+1,:)','framePeriod',framePeriod,'junkFrames',junkFrames,...
+                'paramsInfo',paramsInfo);
+
+            
+            if ~isempty(fit)
+                % keep data, note that we are keeping temporarily in
+                % a vector here so that parfor won't complain
+                % then afterwords we put it into the actual overlay struct
+                % 	thisr2(i) = fit.r2;
+                % 	thisPolarAngle(i) = fit.polarAngle;
+                % 	thisEccentricity(i) = fit.eccentricity;
+                % 	thisRfHalfWidth(i) = fit.std;
+                
+                % parfor can't classify thisData, because it doesn't do order
+                % very well...
+                % so let's make a tempVar which is overwritten each time, then
+                % save this into thisData outside the nested forloop - Jim
+                
+                tempVar = zeros(length(overlayNames),1);
+                
+                for iOverlay = 1:numel(overlayNames)
+                    
+                    % eval doesn't work when using parfor!!!
+                    %eval(sprintf('thisData(%d,%d) = fit.%s;',iOverlay,i,overlayNames{iOverlay}));
+                    
+                    % this gets around using eval
+                    % but leads to other parallel processing issues...
+                    test = strcmpi(fieldnames(fit), overlayNames(iOverlay) );
+                    %pos = find(test==1);
+                    bla = struct2cell(fit);
+                    val = cell2mat(bla(test==1));
+                    
+                    % this is temporary, gets overwritten each time
+                    tempVar(iOverlay,1) = val;
+                    
+                    
+                    %thisData(iOverlay, ii) = val;
+                end
+                % now put the values for this voxel into some sort of order :)
+                thisData(:,ii) = tempVar;
+                
+                % keep parameters
+                rawParams(:,ii) = fit.params(:);
+                r(ii,:) = fit.r;
+                thisr2(ii) = fit.r2;
+                thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
+                %myrawHrfs(:,ii) = fit.myhrf.hrf; %save out prfs hrfs
+            end
+        end
+        
+    end %end of big if loop
     
     % set overlays
     for ii = 1:n
