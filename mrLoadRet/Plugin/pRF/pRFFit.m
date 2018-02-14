@@ -112,10 +112,11 @@ if fitParams.getModelResponse
         
         fitParams.hrfprf = hrfprf;
         % get model fit
-        [residual fit.modelResponse fit.rfModel] = getModelResidual(fitParams.params,tSeries,fitParams, [], hrfprfcheck);
-        % get the canonical
+        [residual, fit.modelResponse, fit.rfModel, ~, realhrf] = getModelResidual(fitParams.params,tSeries,fitParams, [], hrfprfcheck);
+        % get the real hrf from the inputted ones
         fit.p = getFitParams(fitParams.params,fitParams);
-        fit.canonical = getCanonicalHRF(fit.p.canonical,fitParams.framePeriod);
+        fit.canonical = realhrf;
+        %fit.canonical = getCanonicalHRF(fit.p.canonical,fitParams.framePeriod);
         % return tSeries
         fit.tSeries = tSeries;
         return;

@@ -17,7 +17,8 @@ end
 % magic number coding!
 %thehrfs = load('rh_5s_gethrf_testthr.mat');
 %thehrfs = load('rh_1s_gethrf_cothr.mat');
-thehrfs = load('wiener_deconv_hrfs.mat');
+%thehrfs = load('wiener_deconv_hrfs.mat');
+thehrfs = load('rh_1s_getroitseries_feb18.mat');
 
 % see if the shift key is down
 %shiftDown = any(strcmp(get(viewGet(v,'figureNumber'),'CurrentModifier'),'shift'));
@@ -94,7 +95,8 @@ if exist('thehrfs', 'var')
     hrfprf = 1;
     %whichVoxel_hrf = find(thehrfs.hrf_struct.volumeIndices == sub2ind(scanDims,x,y,z));
     whichVoxel_hrf = find(thehrfs.idx_empty == sub2ind(scanDims,x,y,z));
-    myVar = thehrfs.wienerShapes_empty;
+    %myVar = thehrfs.wienerShapes_empty;
+    myVar = thehrfs.clean_lkj;
     % check we are consistent with coords
     % disp(thehrfs.hrf_struct.mycoords(:,whichVoxel_hrf))
     %myVar = thehrfs.hrf_struct.yf;
@@ -157,7 +159,8 @@ hold on
 hline(0,'w:');vline(0,'w:');
 % plot the canonical
 subplot(5,5,5);cla
-plot(m.canonical.time,m.canonical.hrf,'k-');
+%plot(m.canonical.time,m.canonical.hrf,'k-');
+plot(m.canonical.hrf, 'k-');
 title(sprintf('lag: %0.2f tau: %0.2f',m.p.canonical.timelag,m.p.canonical.tau));
 
 % display the stimulus images

@@ -305,8 +305,8 @@ for scanNum = params.scanNum
     end
 
   % save the pRF's dodgy hrfs
-    prfHRFudge = 13;
-    myrawHrfs = nan(prfHRFudge, n);
+%     prfHRFudge = 13;
+%     myrawHrfs = nan(prfHRFudge, n);
     
     
     % massive if loop for checking if we want to use pre-loaded HRFs, or
