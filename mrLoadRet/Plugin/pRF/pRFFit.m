@@ -251,6 +251,7 @@ if ~ieNotDefined('hrfprf'),
         [params resnorm residual exitflag output lambda jacobian] = lsqnonlin(@getModelResidual,fitParams.initParams,fitParams.minParams,fitParams.maxParams,fitParams.optimParams,tSeries,fitParams);
     elseif strcmp(lower(fitParams.algorithm),'nelder-mead')
         [params fval exitflag] = fminsearch(@getModelResidual,fitParams.initParams,fitParams.optimParams,(tSeries-mean(tSeries))/var(tSeries.^2),fitParams);
+        %[params fval exitflag] = fmincon(@getModelResidual,fitParams.initParams,[],[],[],[],[-5 -5 -5],[5 5 5],[],fitParams.optimParams,(tSeries-mean(tSeries))/var(tSeries.^2),fitParams);
     else
         disp(sprintf('(pRFFit) Unknown optimization algorithm: %s',fitParams.algorithm));
         return
@@ -426,6 +427,7 @@ if ~isfield(fitParams,'algorithm') || isempty(fitParams.algorithm)
   fitParams.algorithm = 'nelder-mead';
 end
 fitParams.optimParams = optimset('MaxIter',inf,'Display',fitParams.optimDisplay);
+%fitParams.optimParams = optimset('MaxIter',inf,'Display',fitParams.optimDisplay,'PlotFcns', @optimplotfval);
 
 % compute number of frames
 fitParams.nFrames = size(fitParams.stim{1}.im,3);
