@@ -107,7 +107,7 @@ fitParams = setFitParams(fitParams);
 % just return model response for already calculated params
 if fitParams.getModelResponse
     
-    if ~ieNotDefined('hrfprf'),
+    if ~ieNotDefined('hrfprf')
         %params = hrfprf;
         
         fitParams.hrfprf = hrfprf;
@@ -242,7 +242,7 @@ if isfield(fitParams,'prefit') && ~isempty(fitParams.prefit)
   end
 end
 %keyboard
-if ~ieNotDefined('hrfprf'),
+if ~ieNotDefined('hrfprf')
     %params = hrfprf;
     
     fitParams.hrfprf = hrfprf;
@@ -528,10 +528,11 @@ for i = 1:fitParams.concatInfo.n
   
   % make into a column array
   % Why are we adding rubbish before the actual response??
-%   modelResponse = [modelResponse;thisModelResponse(:)];
-%   residual = [residual;thisResidual(:)];
-    modelResponse = thisModelResponse(:);
-    residual = thisResidual(:);
+  % this is necessary when using concatenated data
+   modelResponse = [modelResponse;thisModelResponse(:)];
+   residual = [residual;thisResidual(:)];
+   % modelResponse = thisModelResponse(:);
+    %residual = thisResidual(:);
 
 
 end
@@ -553,32 +554,48 @@ if fitParams.dispFit
   dispModelFit(params,fitParams,modelResponse,tSeries,rfModel);
 end
 
+% scale and offset (manual)
+if fitParams.getModelResponse == 1
+    
+    if ~any(isnan(modelResponse))
+        mref = mean(tSeries);
+        stdRef = std(tSeries);
+        mSig = mean(modelResponse);
+        stdSig = std(modelResponse);
+        modelResponse = ((modelResponse - mSig)/stdSig) * stdRef + mref;
+        
+        residual = tSeries-modelResponse;
+    else
+        residual = tSeries;
+    end
+    
+elseif fitParams.getModelResponse ~= 1
+    %if hrfprfcheck == 1
+    if isfield(fitParams, 'hrfprf')
+        if ~any(isnan(modelResponse))
+            disp('bloop')
+            %     warning('off', 'MATLAB:rankDeficientMatrix');
+            X = modelResponse(:);
+            X(:,2) = 1;
+            
+            b = X \ tSeries; % backslash linear regression
+            %b = pinv(X) * tSeries;
+            modelResponse = X * b;
+            residual = tSeries-modelResponse;
+        else
+            residual = tSeries;
+        end
+        %modelResponse = newSig;
+    end
+end
+
 % for nelder-mead just compute correlation and return 1-4
 if strcmp(lower(fitParams.algorithm),'nelder-mead')
   residual = -corr(modelResponse,tSeries);
 %  disp(sprintf('(pRFFit:getModelResidual) r: %f',residual));
 end
 
-% scale and offset (manual)
-if fitParams.getModelResponse == 1
-    mref = mean(tSeries);
-    stdRef = std(tSeries);
-    mSig = mean(modelResponse);
-    stdSig = std(modelResponse);
-    modelResponse = ((modelResponse - mSig)/stdSig) * stdRef + mref;
-    
-elseif fitParams.getModelResponse ~= 1
-    if hrfprfcheck == 1
-        %     warning('off', 'MATLAB:rankDeficientMatrix');
-        X = modelResponse(:);
-        X(:,2) = 1;
-        
-        b = X \ tSeries; % backslash linear regression
-        %b = pinv(X) * tSeries;
-        modelResponse = X * b;
-        %modelResponse = newSig;
-    end
-end
+
 
 end
 

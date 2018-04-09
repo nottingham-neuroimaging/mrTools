@@ -301,6 +301,7 @@ for scanNum = params.scanNum
         thehrfs = load(myfilename_hrf);
         
         myVar = thehrfs.hrf_struct.yf;
+        %myVar = thehrfs.hrf_struct.voxHRFs; % smoothed version of hrfprf?
    
     end
 
