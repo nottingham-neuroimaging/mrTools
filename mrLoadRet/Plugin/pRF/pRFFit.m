@@ -308,7 +308,7 @@ else
     eval(sprintf('fit.%s = fit.std;',overlayNames{3}));
 end
 %%%%%%%
-
+%keyboard
 % display
 if fitParams.verbose
   disp(sprintf('%s[%2.f %2.f %2.f] r2=%0.2f polarAngle=%6.1f eccentricity=%6.1f rfHalfWidth=%6.1f',fitParams.dispstr,x,y,z,fit.r2,r2d(fit.polarAngle),fit.eccentricity,fit.std));
@@ -358,11 +358,11 @@ if ~isfield(fitParams,'initParams')
     fitParams.paramNames = {'x','y','rfWidth','timelag','tau'};
     fitParams.paramDescriptions = {'RF x position','RF y position','RF width (std of gaussian)','Time before start of rise of hemodynamic function','Width of the hemodynamic function (tau parameter of gamma)'};
     fitParams.paramIncDec = [1 1 1 0.1 0.5];
-    fitParams.paramMin = [-inf -inf 0 0 0];
-    fitParams.paramMax = [inf inf inf inf inf];
+    fitParams.paramMin = [-inf -inf 0 0 0]; 
+    fitParams.paramMax = [inf inf inf 10 10]; %[ ... inf inf]
     % set min/max and init
     fitParams.minParams = [fitParams.stimExtents(1) fitParams.stimExtents(2) 0 0 0];
-    fitParams.maxParams = [fitParams.stimExtents(3) fitParams.stimExtents(4) inf 3 inf];
+    fitParams.maxParams = [fitParams.stimExtents(3) fitParams.stimExtents(4) inf 10 10]; %[... inf inf]
     fitParams.initParams = [0 0 4 fitParams.timelag fitParams.tau];
     % add on parameters for difference of gamma
     if fitParams.diffOfGamma
@@ -371,10 +371,10 @@ if ~isfield(fitParams,'initParams')
       fitParams.paramDescriptions = {fitParams.paramDescriptions{:} 'Amplitude of second gamma for HDR' 'Timelag for second gamma for HDR','tau for second gamma for HDR'};
       fitParams.paramIncDec = [fitParams.paramIncDec(:)' 0.1 0.1 0.5];
       fitParams.paramMin = [fitParams.paramMin(:)' 0 0 0];
-      fitParams.paramMax = [fitParams.paramMax(:)' inf inf inf];
+      fitParams.paramMax = [fitParams.paramMax(:)' 20 20 20]; %[... inf inf inf]
       % set min/max and init
       fitParams.minParams = [fitParams.minParams 0 0 0];
-      fitParams.maxParams = [fitParams.maxParams inf 6 inf];
+      fitParams.maxParams = [fitParams.maxParams 20 20 20]; %[.. inf inf inf]
       fitParams.initParams = [fitParams.initParams fitParams.amplitudeRatio fitParams.timelag2 fitParams.tau2];
     end
    otherwise
@@ -573,7 +573,7 @@ elseif fitParams.getModelResponse ~= 1
     %if hrfprfcheck == 1
     if isfield(fitParams, 'hrfprf')
         if ~any(isnan(modelResponse))
-            disp('bloop')
+            %disp('bloop')
             %     warning('off', 'MATLAB:rankDeficientMatrix');
             X = modelResponse(:);
             X(:,2) = 1;

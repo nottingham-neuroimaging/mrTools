@@ -80,7 +80,7 @@ if ieNotDefined('coords')
     coords = [x y z];
   end
 end
-
+disp(coords)
 disp('(calcDist) Computing distance');
 
 % load the appropriate surface files
@@ -154,7 +154,9 @@ end
 %   dijkstraDistance = dist(nearestVtcs);
 % end
 
-
+%keyboard
+fprintf('\n Sum dijkstra: %.3f\n\n', sum(dijkstraDistance))
+fprintf('\n Sum 3D euclidean: %.3f\n\n', sum(euclideanDistance))
 % $$$ patch('vertices', mesh.uniqueVertices, 'faces', mesh.uniqueFaceIndexList,'FaceVertexCData', mesh.dist,'facecolor', 'interp','edgecolor', 'none');
 
 return;

@@ -18,8 +18,8 @@ end
 %thehrfs = load('rh_5s_gethrf_testthr.mat');
 %thehrfs = load('rh_1s_gethrf_cothr.mat');
 %thehrfs = load('wiener_deconv_hrfs.mat');
-thehrfs = load('kill_grt_5s_mb3.mat');
-
+%thehrfs = load('kill_grt_5s_mb3.mat');
+%thehrfs = load('grt_1s_kill.mat');
 % see if the shift key is down
 %shiftDown = any(strcmp(get(viewGet(v,'figureNumber'),'CurrentModifier'),'shift'));
 shiftDown = any(strcmp(get(viewGet(v,'figureNumber'),'SelectionType'),'extend'));
@@ -161,6 +161,7 @@ hline(0,'w:');vline(0,'w:');
 subplot(5,5,5);cla
 %plot(m.canonical.time,m.canonical.hrf,'k-');
 plot(m.canonical.hrf, 'k-');
+%xlim([0 55])
 title(sprintf('lag: %0.2f tau: %0.2f',m.p.canonical.timelag,m.p.canonical.tau));
 
 % display the stimulus images

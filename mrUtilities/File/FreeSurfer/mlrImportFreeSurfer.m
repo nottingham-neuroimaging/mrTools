@@ -49,7 +49,7 @@ hemi      = {'lh', 'rh'};
 hemiNames = {'left', 'right'};
 outDir    = fullfile(pwd,'surfRelax');
 if ~exist('volumeCropSize')
-  volumeCropSize = [176 256 256];
+  volumeCropSize = [256 256 256];
 end
 defaultPixelSize = [1 1 1];
 
@@ -132,7 +132,7 @@ end
 if ~isfile(outFile)
   if fieldIsNotDefined(params,'pixelSize')
     disp('(mlrImportFreeSurfer) Could not determine voxel size. Assuming 1x1x1 mm.');
-    pixelSize = defautPixelSize;
+    pixelSize = defaultPixelSize;
   else
     pixelSize = params.pixelSize;
   end

@@ -1718,14 +1718,16 @@ switch lower(param)
         mlrGuiSet(view,'overlayAlpha',alpha);
         
         %check if an Edit Overlay Menu is open and relaunch if current overlay has changed
-        if ~isequal(curOverlay,overlayNum)
-          global gParams
-          if ~isempty(gParams)
-            if strcmp(gParams.figlocstr{1},'mrParamsDialog_Edit_overlay_parameters')
-              editOverlayGUImrParams(view);
-            end
-          end
-        end
+        %% commented out the below lines: breaks when running veinmaskMap.m
+        % to install an mrdispoverlay for some reason \_:(_/ 
+%         if ~isequal(curOverlay,overlayNum)
+%           global gParams
+%           if ~isempty(gParams)
+%             if strcmp(gParams.figlocstr{1},'mrParamsDialog_Edit_overlay_parameters')
+%               editOverlayGUImrParams(view);
+%             end
+%           end
+%         end
       else
         view.analyses{analysisNum}.curOverlay = [];
         mlrGuiSet(view,'overlay',1);

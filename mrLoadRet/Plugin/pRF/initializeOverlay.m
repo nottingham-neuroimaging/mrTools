@@ -24,8 +24,8 @@ if ieNotDefined('func'), func = 'pRF'; end
 if ieNotDefined('range'), range = [0 1]; end
 if ieNotDefined('clip'), clip = [0 1]; end
 if ieNotDefined('colormap'), colormap =  hot(312); end
-if ieNotDefined('colormapType'), colormapType = 'setRangeToMax'; end
-if ieNotDefined('interrogator'), interrogator = 'pRFPlot'; end
+if ieNotDefined('colormapType'), colormapType = 'normal'; end
+if ieNotDefined('interrogator'), interrogator = 'myOverlayStats'; end
 if ieNotDefined('mergeFunction'), mergeFunction = 'pRFMergeParams'; end
 
 
