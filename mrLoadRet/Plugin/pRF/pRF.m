@@ -76,7 +76,7 @@ r2.clip = [0 1];
 r2.colormap = hot(312);
 r2.colormap = r2.colormap(end-255:end,:);
 r2.alpha = 1;
-r2.colormapType = 'setRangeToMax';
+r2.colormapType = 'normal';
 r2.interrogator = 'pRFPlot';
 r2.mergeFunction = 'pRFMergeParams';
 
