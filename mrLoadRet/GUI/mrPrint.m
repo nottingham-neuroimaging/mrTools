@@ -17,7 +17,7 @@ end
 mrGlobals;
 
 % get input arguments
-getArgs(varargin,{'useDefault=0','roiSmooth=1','roiLabels=1'});
+getArgs(varargin,{'useDefault=1','roiSmooth=1','roiLabels=1'});
 
 % get base type
 baseType = viewGet(v,'baseType');
