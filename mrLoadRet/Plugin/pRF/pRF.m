@@ -77,7 +77,7 @@ r2.colormap = hot(312);
 r2.colormap = r2.colormap(end-255:end,:);
 r2.alpha = 1;
 r2.colormapType = 'normal';
-r2.interrogator = 'pRFPlot';
+r2.interrogator = 'myOverlayStats';
 r2.mergeFunction = 'pRFMergeParams';
 
 % create the parameters for the polarAngle overlay
@@ -172,6 +172,7 @@ for scanNum = params.scanNum
   
   %thisr2 = nan(1,n);
   thisRawParamsCoords = nan(3,n);
+  thisResid = nan(numel(concatInfo.whichScan),n);
                 
 
   % get some info about the scan to pass in (which prevents
@@ -274,7 +275,8 @@ for scanNum = params.scanNum
                 r(ii,:) = fit.r;
                 thisr2(ii) = fit.r2;
                 thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
-%                 
+                thisResid(:,ii) = fit.residual;
+
 %                 tempVar = zeros(length(overlayNames),1);
 %                 for iOverlay = 1:numel(overlayNames)
 %                     
@@ -322,7 +324,8 @@ for scanNum = params.scanNum
                 r(ii,:) = fit.r;
                 thisr2(ii) = fit.r2;
                 thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
-                
+                thisResid(:,ii) = fit.residual;
+                %keyboard
                 
 %                 tempVar = zeros(length(overlayNames),1);
 %                 
@@ -383,6 +386,7 @@ for scanNum = params.scanNum
   pRFAnal.d{scanNum}.r = r;
   pRFAnal.d{scanNum}.r2 = thisr2;
   pRFAnal.d{scanNum}.rawCoords = thisRawParamsCoords;
+  pRFAnal.d{scanNum}.myresid = thisResid;
 
   iScan = find(params.scanNum == scanNum);
   thisParams.scanNum = params.scanNum(iScan);
