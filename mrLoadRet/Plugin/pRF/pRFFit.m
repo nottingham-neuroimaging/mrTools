@@ -290,6 +290,8 @@ end
 [fit.polarAngle fit.eccentricity] = cart2pol(fit.x,fit.y);
 
 fit.residual = residual;
+fit.tSeries = tSeries;
+fit.modelResponse = modelResponse;
 
 % display
 if fitParams.verbose

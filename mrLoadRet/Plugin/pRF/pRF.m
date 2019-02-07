@@ -173,7 +173,8 @@ for scanNum = params.scanNum
   %thisr2 = nan(1,n);
   thisRawParamsCoords = nan(3,n);
   thisResid = nan(numel(concatInfo.whichScan),n);
-                
+  thistSeries = nan(numel(concatInfo.whichScan),n);
+  thismodelResponse = nan(numel(concatInfo.whichScan),n);
 
   % get some info about the scan to pass in (which prevents
   % pRFFit from calling viewGet - which is problematic for distributed computing
@@ -276,7 +277,8 @@ for scanNum = params.scanNum
                 thisr2(ii) = fit.r2;
                 thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
                 thisResid(:,ii) = fit.residual;
-
+                thistSeries(:,ii) = fit.tSeries;
+                thismodelResponse(:,ii) = fit.modelResponse;
 %                 tempVar = zeros(length(overlayNames),1);
 %                 for iOverlay = 1:numel(overlayNames)
 %                     
@@ -325,6 +327,8 @@ for scanNum = params.scanNum
                 thisr2(ii) = fit.r2;
                 thisRawParamsCoords(:,ii) = [x(ii) y(ii) z(ii)];
                 thisResid(:,ii) = fit.residual;
+                thistSeries(:,ii) = fit.tSeries;
+                thismodelResponse(:,ii) = fit.modelResponse;
                 %keyboard
                 
 %                 tempVar = zeros(length(overlayNames),1);
@@ -387,6 +391,8 @@ for scanNum = params.scanNum
   pRFAnal.d{scanNum}.r2 = thisr2;
   pRFAnal.d{scanNum}.rawCoords = thisRawParamsCoords;
   pRFAnal.d{scanNum}.myresid = thisResid;
+  pRFAnal.d{scanNum}.mytSeries = thistSeries;
+  pRFAnal.d{scanNum}.mymodelResp = thismodelResponse;
 
   iScan = find(params.scanNum == scanNum);
   thisParams.scanNum = params.scanNum(iScan);
